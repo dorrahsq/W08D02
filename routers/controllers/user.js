@@ -1,6 +1,10 @@
 const userModel = require("./../../db/models/user");
 require("dotenv").config();
 
+// used to share security information between two parties — a client and a server
+const jwt = require("jsonwebtoken");
+const SECRETKEY = process.env.SECRETKEY;
+
 //bcrypt > library to hash passwords.
 const bcrypt = require("bcrypt");
 const SALT = Number(process.env.SALT);
@@ -36,9 +40,13 @@ const logIn = (req, res) => {
       if (result) {
         if (saveEmail == result.email) {
           //unhash password
-          const savePass = await bcrypt.compare(password, result.password);
+          const savePass = await bcrypt.compare(password, result.password); //compare return boolean
           if (savePass) {
-            res.status(201).json(result);
+            const payload = {
+              role: result.role,
+            };
+            const token = await jwt.sign(payload, SECRETKEY); //options
+            res.status(200).json({ result, token });
           } else {
             res.status(400).json("invalid email or password");
           }
