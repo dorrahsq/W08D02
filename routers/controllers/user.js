@@ -26,4 +26,32 @@ const signUp = async (req, res) => {
     });
 };
 
-module.exports = { signUp };
+const logIn = (req, res) => {
+  const { email, password } = req.body;
+  const saveEmail = email.toLowerCase();
+
+  userModel
+    .findOne({ email: saveEmail })
+    .then(async (result) => {
+      if (result) {
+        if (saveEmail == result.email) {
+          //unhash password
+          const savePass = await bcrypt.compare(password, result.password);
+          if (savePass) {
+            res.status(201).json(result);
+          } else {
+            res.status(400).json("invalid email or password");
+          }
+        } else {
+          res.status(400).json("invalid email or password");
+        }
+      } else {
+        res.status(404).json("not found");
+      }
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};
+
+module.exports = { signUp, logIn };
